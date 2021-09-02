@@ -1,13 +1,16 @@
 package Hackajob
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"log"
+	"net"
 	"net/http"
 	"net/url"
 	"sort"
 	"strings"
+	"time"
 )
 
 func init() {
@@ -21,6 +24,20 @@ func StarWars(film, character string) string {
 		Results []struct {
 			Characters []string
 			Films      []string
+		}
+	}
+
+	if tp, ok := http.DefaultTransport.(*http.Transport); ok {
+		f := tp.DialContext
+		tp.DialContext = func(ctx context.Context, network, addr string) (net.Conn, error) {
+			ts := time.Now()
+			cnn, err := f(ctx, network, addr)
+			status := '🎉'
+			if err != nil {
+				status = '🔥'
+			}
+			log.Printf("%c [%v] --|%v|-> %v", status, time.Since(ts), network, addr)
+			return cnn, err
 		}
 	}
 
