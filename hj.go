@@ -10,6 +10,7 @@ import (
 	"net/url"
 	"sort"
 	"strings"
+	"sync"
 	"time"
 )
 
@@ -54,8 +55,20 @@ func StarWars(film, character string) string {
 		return &o, nil
 	}
 
-	films, _ := rsQuery("films", film)
-	chars, _ := rsQuery("people", character)
+	var films, chars *Result
+
+	var wg sync.WaitGroup
+	wg.Add(2)
+	go func() {
+		defer wg.Done()
+		films, _ = rsQuery("films", film)
+	}()
+	go func() {
+		defer wg.Done()
+		chars, _ = rsQuery("people", character)
+	}()
+	wg.Wait()
+
 	if films == nil || chars == nil {
 		return ""
 	}
