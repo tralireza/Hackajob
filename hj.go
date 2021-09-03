@@ -55,9 +55,9 @@ func StarWars(film, character string) string {
 		return &o, nil
 	}
 
+	var wg sync.WaitGroup
 	var films, chars *Result
 
-	var wg sync.WaitGroup
 	wg.Add(2)
 	go func() {
 		defer wg.Done()
@@ -90,17 +90,26 @@ func StarWars(film, character string) string {
 
 	var Films, Chars []string
 	if films.Count > 0 {
-		for _, url := range films.Results[0].Characters {
-			o, _ := rsGet(url)
-			Chars = append(Chars, o.Name)
-		}
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			for _, url := range films.Results[0].Characters {
+				o, _ := rsGet(url)
+				Chars = append(Chars, o.Name)
+			}
+		}()
 	}
 	if chars.Count > 0 {
-		for _, url := range chars.Results[0].Films {
-			o, _ := rsGet(url)
-			Films = append(Films, o.Title)
-		}
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			for _, url := range chars.Results[0].Films {
+				o, _ := rsGet(url)
+				Films = append(Films, o.Title)
+			}
+		}()
 	}
+	wg.Wait()
 
 	sort.Strings(Chars)
 	r := film + ": " + strings.Join(Chars, ", ") + "; "
