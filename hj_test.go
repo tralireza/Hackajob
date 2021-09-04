@@ -3,10 +3,12 @@ package Hackajob
 import (
 	"bufio"
 	"bytes"
+	"encoding/json"
 	"io"
 	"io/fs"
 	"log"
 	"os"
+	"strings"
 	"testing"
 	"time"
 )
@@ -55,6 +57,16 @@ func TestClone(t *testing.T) {
 	bfr.Reset()
 	Clone[Vehicle]("vehicles", 76, &bfr)
 	writeOutput("sw_vehicles.json", &bfr)
+}
+
+func TestProcess(t *testing.T) {
+	rdr := strings.NewReader(`[
+    {"id":1,"title":"A New Hope","name":"C-3PO","films":[".../1/",".../2/",".../3/"],"homeworld":".../2/"}
+  ]`)
+
+	Objs := Load[Starship](rdr)
+	log.Printf("%+v", Objs)
+	json.NewEncoder(os.Stdout).Encode(&Objs)
 }
 
 func TestStarWars(t *testing.T) {

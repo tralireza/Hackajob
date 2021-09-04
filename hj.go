@@ -64,18 +64,18 @@ type Planet struct {
 type SWVehicle struct {
 	SWO
 
-	Name, Model, Manufacturer, Crew, Length, Passengers, Consumables string
+	Name, Model, Manufacturer, Crew, Length, Passengers, Consumables string `json:",omitempty"`
 
-	Pilots, Films []string
+	Pilots, Films []string `json:",omitempty"`
 
-	CostInCredits        string `json:"cost_in_credits"`
-	MaxAtmospheringSpeed string `json:"max_atmosphering_speed"`
+	CostInCredits        string `json:"cost_in_credits,omitempty"`
+	MaxAtmospheringSpeed string `json:"max_atmosphering_speed,omitempty"`
 }
 
 type Starship struct {
 	SWVehicle
 
-	MGLT string
+	MGLT string `json:",omitempty"`
 
 	HyperdriveRating string `json:"hyperdrive_rating"`
 	StarshipClass    string `json:"starship_class"`
@@ -86,6 +86,14 @@ type Vehicle struct {
 
 	CargoCapacity string `json:"cargo_capacity"`
 	VehicleClass  string `json:"vehicle_class"`
+}
+
+func Load[T any](rdr io.Reader) []T {
+	var Objs []T
+
+	json.NewDecoder(rdr).Decode(&Objs)
+
+	return Objs
 }
 
 func Clone[T any](rs string, rsMax int, w io.Writer) error {
