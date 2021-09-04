@@ -4,10 +4,12 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"io"
 	"log"
 	"net"
 	"net/http"
 	"net/url"
+	"reflect"
 	"sort"
 	"strings"
 	"sync"
@@ -16,6 +18,106 @@ import (
 
 func init() {
 	log.SetFlags(0)
+}
+
+type SWO struct {
+	Id int
+}
+
+type Film struct {
+	SWO
+
+	Title              string
+	Director, Producer string
+
+	Characters, Starships, Vehicles, Species, Planets []string
+
+	OpeningCrawl string `json:"opening_crawl"`
+	EpisodeId    int    `json:"episode_id"`
+	ReleaseDate  string `json:"release_date"`
+}
+
+type Character struct {
+	SWO
+
+	Name, Height, Mass, Gender, Homeworld string
+	Films, Starships, Species, Vehicles   []string
+
+	HairColor string `json:"hair_color"`
+	SkinColor string `json:"skin_color"`
+	EyeColor  string `json:"eye_color"`
+	BirthYear string `json:"birth_year"`
+}
+
+type Planet struct {
+	SWO
+
+	Name, Diameter, Gravity, Climate, Terrain, Population string
+
+	Films, Residents []string
+
+	RotationPeriod string `json:"rotation_period"`
+	OrbitalPeriod  string `json:"orbital_period"`
+	SurfaceWater   string `json:"surface_water"`
+}
+
+type SWVehicle struct {
+	SWO
+
+	Name, Model, Manufacturer, Crew, Length, Passengers, Consumables string
+
+	Pilots, Films []string
+
+	CostInCredits        string `json:"cost_in_credits"`
+	MaxAtmospheringSpeed string `json:"max_atmosphering_speed"`
+}
+
+type Starship struct {
+	SWVehicle
+
+	MGLT string
+
+	HyperdriveRating string `json:"hyperdrive_rating"`
+	StarshipClass    string `json:"starship_class"`
+}
+
+type Vehicle struct {
+	SWVehicle
+
+	CargoCapacity string `json:"cargo_capacity"`
+	VehicleClass  string `json:"vehicle_class"`
+}
+
+func Clone[T any](rs string, rsMax int, w io.Writer) error {
+	const apiUrl = "https://challenges.hackajob.co/swapi/api"
+	var Objs []*T
+
+	for i := range rsMax {
+		rsp, err := http.Get(fmt.Sprintf("%s/%s/%d/", apiUrl, rs, i+1))
+		if err != nil {
+			return err
+		}
+
+		if rsp.StatusCode != http.StatusOK {
+			rsp.Body.Close()
+			continue
+		}
+
+		o := new(T)
+		json.NewDecoder(rsp.Body).Decode(o)
+		rsp.Body.Close()
+
+		rv := reflect.ValueOf(o)
+		rv.Elem().FieldByName("Id").Set(reflect.ValueOf(i + 1))
+
+		Objs = append(Objs, o)
+	}
+
+	log.Print(" -> ", len(Objs))
+
+	jenc := json.NewEncoder(w)
+	jenc.SetIndent("", "  ")
+	return jenc.Encode(Objs)
 }
 
 func StarWars(film, character string) string {
