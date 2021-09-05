@@ -41,7 +41,7 @@ type Character struct {
 	SWO
 
 	Name, Height, Mass, Gender, Homeworld string
-	Films, Starships, Species, Vehicles   []string
+	Films, Starships, Species, Vehicles   []string `json:",omitempty"`
 
 	HairColor string `json:"hair_color"`
 	SkinColor string `json:"skin_color"`
@@ -88,10 +88,28 @@ type Vehicle struct {
 	VehicleClass  string `json:"vehicle_class"`
 }
 
-func Load[T any](rdr io.Reader) []T {
+func Process[T any](rdr io.Reader, flds []string) []T {
+	const rsPos = 6
 	var Objs []T
 
 	json.NewDecoder(rdr).Decode(&Objs)
+
+	for _, Obj := range Objs {
+		rv, rt := reflect.ValueOf(&Obj), reflect.TypeOf(Obj)
+		for _, fn := range flds {
+			if _, ok := rt.FieldByName(fn); ok {
+				fld := rv.Elem().FieldByName(fn)
+				switch fld.Kind() {
+				case reflect.Slice:
+					for i := 0; i < fld.Len(); i++ {
+						fld.Index(i).SetString(strings.Split(fld.Index(i).String(), "/")[rsPos])
+					}
+				case reflect.String:
+					fld.SetString(strings.Split(fld.String(), "/")[rsPos])
+				}
+			}
+		}
+	}
 
 	return Objs
 }

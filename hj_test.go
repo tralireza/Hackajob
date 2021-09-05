@@ -61,10 +61,18 @@ func TestClone(t *testing.T) {
 
 func TestProcess(t *testing.T) {
 	rdr := strings.NewReader(`[
-    {"id":1,"title":"A New Hope","name":"C-3PO","films":[".../1/",".../2/",".../3/"],"homeworld":".../2/"}
+    {"id":1,"title":"A New Hope","name":"C-3PO","cargo_capacity":"2M","starship_class":"Destroyer",
+     "films":["//////1/","//////2/","//////3/"],
+     "characters":["//////4/","//////5/"],
+     "residents":["//////4/"],
+     "planets":["//////6/"],
+     "species":["//////7/"],
+     "pilots":["//////4/","//////5/"],
+     "starships":["//////8/","//////9/"],
+     "homeworld":"//////6/"}
   ]`)
 
-	Objs := Load[Starship](rdr)
+	Objs := Process[Character](rdr, []string{"Species", "Starships", "Films", "Pilots", "Homeworld"})
 	log.Printf("%+v", Objs)
 	json.NewEncoder(os.Stdout).Encode(&Objs)
 }
