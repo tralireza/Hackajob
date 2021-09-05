@@ -30,7 +30,7 @@ type Film struct {
 	Title              string
 	Director, Producer string
 
-	Characters, Starships, Vehicles, Species, Planets []string
+	Characters, Starships, Vehicles, Species, Planets []string `json:",omitempty"`
 
 	OpeningCrawl string `json:"opening_crawl"`
 	EpisodeId    int    `json:"episode_id"`
@@ -90,12 +90,12 @@ type Vehicle struct {
 
 func Process[T any](rdr io.Reader, flds []string) []T {
 	const rsPos = 6
-	var Objs []T
 
+	var Objs []T
 	json.NewDecoder(rdr).Decode(&Objs)
 
-	for _, Obj := range Objs {
-		rv, rt := reflect.ValueOf(&Obj), reflect.TypeOf(Obj)
+	for i := range Objs {
+		rv, rt := reflect.ValueOf(&Objs[i]), reflect.TypeOf(Objs[i])
 		for _, fn := range flds {
 			if _, ok := rt.FieldByName(fn); ok {
 				fld := rv.Elem().FieldByName(fn)
