@@ -1,11 +1,8 @@
 package Hackajob
 
 import (
-	"bufio"
 	"bytes"
 	"encoding/json"
-	"io"
-	"io/fs"
 	"log"
 	"os"
 	"strings"
@@ -14,49 +11,35 @@ import (
 )
 
 func TestClone(t *testing.T) {
-	writeOutput := func(fn string, rdr io.Reader) error {
-		if fn == "stdout" || fn == "" {
-			if _, err := io.Copy(os.Stdout, rdr); err != nil {
-				return err
-			}
-			return nil
-		}
-
-		f, err := os.OpenFile(fn, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, fs.FileMode(0640))
-		if err != nil {
-			return err
-		}
-		defer f.Close()
-
-		wtr := bufio.NewWriter(f)
-		if _, err := io.Copy(wtr, rdr); err != nil {
-			return err
-		}
-		wtr.Flush()
-
-		log.Print(" -> ", f.Name())
-		return nil
-	}
-
 	bfr := bytes.Buffer{}
 	Clone[Film]("films", 7, &bfr)
-	writeOutput("sw_films.json", &bfr)
+	films := Process[Film](&bfr, []string{"Characters", "Planets", "Species", "Starships", "Vehicles"})
+	WriteJSON("films.json", films)
 
 	bfr.Reset()
 	Clone[Character]("people", 88, &bfr)
-	writeOutput("sw_characters.json", &bfr)
+	chars := Process[Character](&bfr, []string{"Films", "Species", "Starships", "Vehicles", "Homeworld"})
+	WriteJSON("characters.json", chars)
 
 	bfr.Reset()
 	Clone[Planet]("planets", 60, &bfr)
-	writeOutput("sw_planets.json", &bfr)
+	planets := Process[Planet](&bfr, []string{"Films", "Residents"})
+	WriteJSON("planets.json", planets)
 
 	bfr.Reset()
 	Clone[Starship]("starships", 76, &bfr)
-	writeOutput("sw_starships.json", &bfr)
+	starships := Process[Starship](&bfr, []string{"Films", "Pilots"})
+	WriteJSON("starships.json", starships)
 
 	bfr.Reset()
 	Clone[Vehicle]("vehicles", 76, &bfr)
-	writeOutput("sw_vehicles.json", &bfr)
+	vehicles := Process[Vehicle](&bfr, []string{"Films", "Pilots"})
+	WriteJSON("vehicles.json", vehicles)
+
+	bfr.Reset()
+	Clone[Species]("species", 37, &bfr)
+	species := Process[Species](&bfr, []string{"Films", "People", "Homeworld"})
+	WriteJSON("species.json", species)
 }
 
 func TestProcess(t *testing.T) {

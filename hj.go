@@ -1,14 +1,17 @@
 package Hackajob
 
 import (
+	"bufio"
 	"context"
 	"encoding/json"
 	"fmt"
 	"io"
+	"io/fs"
 	"log"
 	"net"
 	"net/http"
 	"net/url"
+	"os"
 	"reflect"
 	"sort"
 	"strings"
@@ -61,6 +64,20 @@ type Planet struct {
 	SurfaceWater   string `json:"surface_water"`
 }
 
+type Species struct {
+	SWO
+
+	Name, Classification, Designation, Language, Homeworld string
+
+	People, Films []string `json:",omitempty"`
+
+	AverageHeight   string `json:"average_height"`
+	SkinColors      string `json:"skin_colors"`
+	HairColors      string `json:"hair_colors"`
+	EyeColors       string `json:"eye_colors"`
+	AverageLifespan string `json:"average_lifespan"`
+}
+
 type SWVehicle struct {
 	SWO
 
@@ -105,7 +122,10 @@ func Process[T any](rdr io.Reader, flds []string) []T {
 						fld.Index(i).SetString(strings.Split(fld.Index(i).String(), "/")[rsPos])
 					}
 				case reflect.String:
-					fld.SetString(strings.Split(fld.String(), "/")[rsPos])
+					ts := strings.Split(fld.String(), "/")
+					if len(ts) >= rsPos {
+						fld.SetString(ts[rsPos])
+					}
 				}
 			}
 		}
@@ -249,4 +269,32 @@ func StarWars(film, character string) string {
 		r += "none"
 	}
 	return r
+}
+
+func WriteJSON(fn string, Objs any) error {
+	if fn == "stdout" || fn == "" {
+		jenc := json.NewEncoder(os.Stdout)
+		jenc.SetIndent("", "  ")
+		if err := jenc.Encode(&Objs); err != nil {
+			return err
+		}
+		return nil
+	}
+
+	f, err := os.OpenFile(fn, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, fs.FileMode(0640))
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+	wtr := bufio.NewWriter(f)
+
+	jenc := json.NewEncoder(wtr)
+	jenc.SetIndent("", "  ")
+	if err := jenc.Encode(&Objs); err != nil {
+		return err
+	}
+	wtr.Flush()
+
+	log.Print(" -> ", f.Name())
+	return nil
 }
