@@ -55,7 +55,7 @@ func TestProcess(t *testing.T) {
      "homeworld":"//////6/"}
   ]`)
 
-	Objs := Process[Character](rdr, []string{"Species", "Starships", "Films", "Pilots", "Homeworld"})
+	Objs := Process[Film](rdr, []string{"Planets", "Characters", "Species", "Starships", "Residents", "Films", "Pilots", "Homeworld"})
 	log.Printf("%+v", Objs)
 	json.NewEncoder(os.Stdout).Encode(&Objs)
 }
