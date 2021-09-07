@@ -36,7 +36,7 @@ func TestClone(t *testing.T) {
 	vehicles := Process[Vehicle](&bfr, []string{"Films", "Pilots"})
 	WriteJSON("vehicles.json", vehicles)
 
-	bfr.Reset()
+	bfr.Truncate(0)
 	Clone[Species]("species", 37, &bfr)
 	species := Process[Species](&bfr, []string{"Films", "People", "Homeworld"})
 	WriteJSON("species.json", species)
