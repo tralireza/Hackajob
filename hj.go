@@ -23,6 +23,10 @@ func init() {
 	log.SetFlags(0)
 }
 
+type SWObject interface {
+	Film | Character | Planet | Species | Starship | Vehicle
+}
+
 type SWO struct {
 	Id int
 }
@@ -105,7 +109,7 @@ type Vehicle struct {
 	VehicleClass  string `json:"vehicle_class"`
 }
 
-func Process[T any](rdr io.Reader, flds []string) []T {
+func Process[T SWObject](rdr io.Reader, flds []string) []T {
 	const rsPos = 6
 
 	var Objs []T
@@ -134,7 +138,7 @@ func Process[T any](rdr io.Reader, flds []string) []T {
 	return Objs
 }
 
-func Clone[T any](rs string, rsMax int, w io.Writer) error {
+func Clone[T SWObject](rs string, rsMax int, w io.Writer) error {
 	const apiUrl = "https://challenges.hackajob.co/swapi/api"
 	var Objs []*T
 

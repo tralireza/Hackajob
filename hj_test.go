@@ -52,6 +52,7 @@ func TestProcess(t *testing.T) {
      "species":["//////7/"],
      "pilots":["//////4/","//////5/"],
      "starships":["//////8/","//////9/"],
+     "vehicles":[],
      "homeworld":"//////6/"}
   ]`)
 
